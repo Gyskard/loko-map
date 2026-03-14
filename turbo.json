@@ -9,6 +9,7 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "typecheck": {},
     "lint": {}
   }
 }

@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "group": "build",
+      "dependsOn": ["format", "lint", "typecheck"]
+    },
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "pnpm run format",
+      "group": "build"
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "pnpm run lint",
+      "group": "build"
+    },
+    {
+      "label": "typecheck",
+      "type": "shell",
+      "command": "pnpm run typecheck",
+      "group": "build"
+    }
+  ]
+}
