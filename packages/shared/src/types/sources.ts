@@ -1,3 +1,3 @@
 export const SOURCE_TYPE = {
-  VECTOR: "vector"
+  VECTOR: "vector",
 } as const;

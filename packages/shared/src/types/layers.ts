@@ -14,7 +14,7 @@ export const LAYER_STYLE_CIRCLE = {
 } as const;
 
 export const LAYER_KEY = {
-  SOURCE_LAYER: "source-layer"
+  SOURCE_LAYER: "source-layer",
 } as const;
 
 export const LAYER_TYPE = {
@@ -32,4 +32,3 @@ export interface LayerConfig {
   sourceLayer: string;
   type: LayerType;
 }
-

@@ -3,7 +3,14 @@ import { Map as MapLibre, useMap } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { LAYER_KEY, LAYER_STYLE_CIRCLE, LAYER_STYLE_LINE, LAYERS, LAYER_TYPE, SOURCE_TYPE } from "@loko-map/shared";
+import {
+  LAYER_KEY,
+  LAYER_STYLE_CIRCLE,
+  LAYER_STYLE_LINE,
+  LAYERS,
+  LAYER_TYPE,
+  SOURCE_TYPE,
+} from "@loko-map/shared";
 
 const MAP_TILER_KEY = import.meta.env.VITE_MAP_TILER_KEY;
 
