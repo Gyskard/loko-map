@@ -6,11 +6,11 @@ import { mdiTrain } from "@mdi/js";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
   LAYER_KEY,
-  LAYER_LAYOUT_SYMBOL,
   LAYER_STYLE_LINE,
   LAYERS,
   LAYER_TYPE,
   SOURCE_TYPE,
+  LAYER_STYLE_CIRCLE,
 } from "@loko-map/shared";
 
 const MAP_TILER_KEY = import.meta.env.VITE_MAP_TILER_KEY;
@@ -30,7 +30,7 @@ const FRANCE_BOUNDS: [number, number, number, number] = [-7.5, 39.5, 12, 52.5];
 const protocol = new Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 
-const STATION_ICON_NAME = "rail";
+const STATION_ICON_NAME = "train";
 const STATION_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <path fill="#e63946" d="${mdiTrain}"/>
 </svg>`;
@@ -76,22 +76,15 @@ function Layers() {
           url: `${TILES_URL}/${file}`,
         });
 
-        if (type === LAYER_TYPE.SYMBOL) {
+        if (type === LAYER_TYPE.CIRCLE) {
           m.addLayer({
             id,
             type,
             source: id,
             [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
-            layout: {
-              [LAYER_LAYOUT_SYMBOL.ICON_IMAGE]: STATION_ICON_NAME,
-              [LAYER_LAYOUT_SYMBOL.ICON_ALLOW_OVERLAP]: true,
-              [LAYER_LAYOUT_SYMBOL.ICON_SIZE]: [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                5, 0.3,
-                12, 1.2,
-              ],
+            paint: {
+              [LAYER_STYLE_CIRCLE.RADIUS]: 4,
+              [LAYER_STYLE_CIRCLE.COLOR]: "#f77300",
             },
           });
         } else if (type === LAYER_TYPE.LINE) {
@@ -101,7 +94,7 @@ function Layers() {
             source: id,
             [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
             paint: {
-              [LAYER_STYLE_LINE.COLOR]: "#e63946",
+              [LAYER_STYLE_LINE.COLOR]: "#f77300",
               [LAYER_STYLE_LINE.WIDTH]: 2,
             },
           });

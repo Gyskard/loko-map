@@ -5,7 +5,7 @@ export const LAYERS = [
     id: "stations",
     file: "stations.pmtiles",
     sourceLayer: "stations",
-    type: LAYER_TYPE.SYMBOL,
+    type: LAYER_TYPE.CIRCLE,
   },
   {
     id: "lines",
