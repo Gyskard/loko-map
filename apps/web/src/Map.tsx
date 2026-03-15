@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { Map as MapLibre, useMap } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
-import { LAYERS } from "@loko-map/shared";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { LAYER_KEY, LAYER_STYLE_CIRCLE, LAYER_STYLE_LINE, LAYERS, LAYER_TYPE, SOURCE_TYPE } from "@loko-map/shared";
 
 const MAP_TILER_KEY = import.meta.env.VITE_MAP_TILER_KEY;
 
@@ -37,20 +37,32 @@ function Layers() {
 
       for (const { id, file, sourceLayer, type } of LAYERS) {
         m.addSource(id, {
-          type: "vector",
+          type: SOURCE_TYPE.VECTOR,
           url: `${TILES_URL}/${file}`,
         });
 
-        m.addLayer({
-          id,
-          type,
-          source: id,
-          ["source-layer"]: sourceLayer,
-          paint: {
-            "circle-radius": 4,
-            "circle-color": "#e63946",
-          },
-        });
+        if (type === LAYER_TYPE.CIRCLE) {
+          m.addLayer({
+            id,
+            type,
+            source: id,
+            [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
+            paint: {
+              [LAYER_STYLE_CIRCLE.RADIUS]: 4,
+              [LAYER_STYLE_CIRCLE.COLOR]: "#e63946",
+            },
+          });
+        } else if (type === LAYER_TYPE.LINE) {
+          m.addLayer({
+            id,
+            type,
+            source: id,
+            [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
+            paint: {
+              [LAYER_STYLE_LINE.COLOR]: "#e63946",
+            },
+          });
+        }
       }
     };
 

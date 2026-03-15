@@ -9,5 +9,6 @@
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "vite-env.d.ts"],
+  "references": [{ "path": "../../packages/shared" }]
 }

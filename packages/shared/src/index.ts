@@ -1,19 +1,5 @@
-export const APP_NAME = "Loko Map";
-
-export type LayerType = "circle" | "line" | "fill" | "symbol";
-
-export interface LayerConfig {
-  id: string;
-  file: string;
-  sourceLayer: string;
-  type: LayerType;
-}
-
-export const LAYERS = [
-  {
-    id: "stations",
-    file: "stations.pmtiles",
-    sourceLayer: "stations",
-    type: "circle",
-  },
-] as const satisfies LayerConfig[];
+export { APP_NAME } from "./config/app";
+export { LAYERS } from "./config/layers";
+export { LAYER_KEY, LAYER_STYLE_CIRCLE, LAYER_STYLE_FILL, LAYER_STYLE_LINE, LAYER_TYPE } from "./types/layers";
+export type { LayerConfig, LayerType } from "./types/layers";
+export { SOURCE_TYPE } from "./types/sources";
