@@ -23,6 +23,12 @@
       "type": "shell",
       "command": "pnpm run typecheck",
       "group": "build"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "pnpm run test",
+      "group": "build"
     }
   ]
 }

@@ -1,6 +1,6 @@
 export const APP_NAME = "Loko Map";
 
-export type LayerType = "circle" | "line" | "fill" | "symbol"
+export type LayerType = "circle" | "line" | "fill" | "symbol";
 
 export interface LayerConfig {
   id: string;

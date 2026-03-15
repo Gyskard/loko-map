@@ -8,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = Fastify({ logger: true });
 
-const API_PREFIX = "/api"
+const API_PREFIX = "/api";
 
 app.register(fastifyStatic, {
   root: join(__dirname, "../data"),
