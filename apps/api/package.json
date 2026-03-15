@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@types/node": "22.19.15",
     "tsx": "4.21.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.0"
   }
 }
