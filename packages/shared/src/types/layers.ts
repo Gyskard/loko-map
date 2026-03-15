@@ -13,6 +13,12 @@ export const LAYER_STYLE_CIRCLE = {
   COLOR: "circle-color",
 } as const;
 
+export const LAYER_LAYOUT_SYMBOL = {
+  ICON_IMAGE: "icon-image",
+  ICON_SIZE: "icon-size",
+  ICON_ALLOW_OVERLAP: "icon-allow-overlap",
+} as const;
+
 export const LAYER_KEY = {
   SOURCE_LAYER: "source-layer",
 } as const;

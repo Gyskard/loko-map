@@ -54,6 +54,9 @@ importers:
       '@loko-map/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@mdi/js':
+        specifier: ^7.4.47
+        version: 7.4.47
       maplibre-gl:
         specifier: 5.20.1
         version: 5.20.1
@@ -479,6 +482,9 @@ packages:
 
   '@maplibre/vt-pbf@4.3.0':
     resolution: {integrity: sha512-jIvp8F5hQCcreqOOpEt42TJMUlsrEcpf/kI1T2v85YrQRV6PPXUcEXUg5karKtH6oh47XJZ4kHu56pUkOuqA7w==}
+
+  '@mdi/js@7.4.47':
+    resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
 
   '@napi-rs/wasm-runtime@1.1.1':
     resolution: {integrity: sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A==}
@@ -2281,6 +2287,8 @@ snapshots:
       '@types/supercluster': 7.1.3
       pbf: 4.0.1
       supercluster: 8.0.1
+
+  '@mdi/js@7.4.47': {}
 
   '@napi-rs/wasm-runtime@1.1.1':
     dependencies:

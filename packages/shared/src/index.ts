@@ -2,6 +2,7 @@ export { APP_NAME } from "./config/app";
 export { LAYERS } from "./config/layers";
 export {
   LAYER_KEY,
+  LAYER_LAYOUT_SYMBOL,
   LAYER_STYLE_CIRCLE,
   LAYER_STYLE_FILL,
   LAYER_STYLE_LINE,
