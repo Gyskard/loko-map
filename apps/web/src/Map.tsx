@@ -10,7 +10,7 @@ import {
   LAYERS,
   LAYER_TYPE,
   SOURCE_TYPE,
-  LAYER_STYLE_CIRCLE,
+  LAYER_LAYOUT_SYMBOL,
 } from "@loko-map/shared";
 
 const MAP_TILER_KEY = import.meta.env.VITE_MAP_TILER_KEY;
@@ -79,12 +79,19 @@ function Layers() {
         if (type === LAYER_TYPE.CIRCLE) {
           m.addLayer({
             id,
-            type,
+            type: LAYER_TYPE.SYMBOL,
             source: id,
             [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
-            paint: {
-              [LAYER_STYLE_CIRCLE.RADIUS]: 4,
-              [LAYER_STYLE_CIRCLE.COLOR]: "#f77300",
+            layout: {
+              [LAYER_LAYOUT_SYMBOL.ICON_IMAGE]: STATION_ICON_NAME,
+              [LAYER_LAYOUT_SYMBOL.ICON_SIZE]: [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                5, 0.3,
+                12, 1.1,
+              ],
+              [LAYER_LAYOUT_SYMBOL.ICON_ALLOW_OVERLAP]: true,
             },
           });
         } else if (type === LAYER_TYPE.LINE) {
@@ -93,9 +100,14 @@ function Layers() {
             type,
             source: id,
             [LAYER_KEY.SOURCE_LAYER]: sourceLayer,
+            layout: {
+              "line-cap": "round",
+              "line-join": "round",
+            },
             paint: {
               [LAYER_STYLE_LINE.COLOR]: "#f77300",
               [LAYER_STYLE_LINE.WIDTH]: 2,
+              "line-blur": 0.1,
             },
           });
         }
