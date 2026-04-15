@@ -1,9 +1,9 @@
-import { Map } from "./Map";
+import { MapViewer } from "@/components/Map";
 
 function App() {
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <Map />
+    <div className="w-screen h-screen">
+      <MapViewer />
     </div>
   );
 }

@@ -7,8 +7,7 @@ I'd like to develop several features, such as displaying the approximate locatio
 ## Built With
 
 - React
+- CesiumJS
 - NodeJS
 - PNPM
 - Fastify
-- Maplibre
-- PMTiles

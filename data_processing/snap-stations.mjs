@@ -29,4 +29,6 @@ const result = {
 };
 
 writeFileSync("stations_snapped.geojson", JSON.stringify(result));
-console.log(`Done: ${snapped} snapped, ${skipped} skipped (> ${MAX_SNAP_DISTANCE_KM}km from any line)`);
+console.log(
+  `Done: ${snapped} snapped, ${skipped} skipped (> ${MAX_SNAP_DISTANCE_KM}km from any line)`,
+);
