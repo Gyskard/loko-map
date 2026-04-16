@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { bearingDeg, perpOffset, computeBbox, KM_PER_DEG } from "./geo";
+import {
+  bearingDeg,
+  perpOffset,
+  computeBbox,
+  KM_PER_DEG,
+} from "../src/utils/geo";
 
 describe("bearingDeg", () => {
   it("returns 0 heading north", () => {

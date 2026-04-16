@@ -7,7 +7,7 @@ import {
   visibleKmForLine,
   sumVisibleKm,
   totalKm,
-} from "./stats";
+} from "../src/utils/stats";
 
 // ---------------------------------------------------------------------------
 // haversineKm
