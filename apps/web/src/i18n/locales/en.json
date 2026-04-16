@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "Loko-map"
+  },
+  "control": {
+    "section": "Displayed data",
+    "active": "Active stations & lines",
+    "inactive": "Inactive stations & lines"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "showStats": "Statistics",
+    "enable3D": "3D rendering"
+  },
+  "stats": {
+    "title": "Statistics",
+    "noData": "No data selected",
+    "lines": "Lines",
+    "activeStations": "Active stations",
+    "oldStations": "Former stations",
+    "visibleOfKm": "{{visible}} visible out of {{total}}",
+    "visibleOfCount": "{{visible}} visible out of {{total}}"
+  },
+  "popup": {
+    "segment": "Segment",
+    "uic": "UIC code",
+    "insee": "INSEE"
+  }
+}

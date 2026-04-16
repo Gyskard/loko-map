@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "Loko-map"
+  },
+  "control": {
+    "section": "Données affichées",
+    "active": "Gares et lignes actives",
+    "inactive": "Gares et lignes non actives"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "showStats": "Statistiques",
+    "enable3D": "Rendu 3D"
+  },
+  "stats": {
+    "title": "Statistiques",
+    "noData": "Aucune donnée sélectionnée",
+    "lines": "Lignes",
+    "activeStations": "Gares actives",
+    "oldStations": "Anciennes gares",
+    "visibleOfKm": "{{visible}} visibles sur {{total}}",
+    "visibleOfCount": "{{visible}} visibles sur {{total}}"
+  },
+  "popup": {
+    "segment": "Segment",
+    "uic": "Code UIC",
+    "insee": "INSEE"
+  }
+}

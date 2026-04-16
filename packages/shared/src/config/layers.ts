@@ -1,4 +1,4 @@
-import { LAYER_TYPE, LayerConfig } from "../types/layers";
+import { LAYER_TYPE, LayerConfig } from "../types/layers.js";
 
 export const LAYERS = [
   {

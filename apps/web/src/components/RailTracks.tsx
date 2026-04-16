@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useCesium } from "resium";
 import * as Cesium from "cesium";
 import type { LineString, FeatureCollection } from "geojson";
 import type { FeatureData } from "@/types";
 import { bearingDeg, perpOffset, computeBbox, KM_PER_DEG } from "@/utils/geo";
+import { clearEntities } from "@/utils/cesium";
 
 // Switch from overview line to 3D track geometry below this altitude (m)
 const DETAIL_MAX_ALTITUDE_M = 500;
@@ -39,17 +40,38 @@ const TIE_WIDTH_M = 0.24;
 // features visually overlap at junctions despite bearing changes.
 const JUNCTION_OVERLAP_KM = 0.003;
 
-const COLOR_BED = "#7a6a5a";
-const COLOR_RAIL = "#c8c8c8";
-const COLOR_TIE = "#7b4f1e";
+const COLOR_BED = Cesium.Color.fromCssColorString("#7a6a5a");
+const COLOR_RAIL = Cesium.Color.fromCssColorString("#c8c8c8");
+const COLOR_TIE = Cesium.Color.fromCssColorString("#7b4f1e");
 
 // Renders 3D track geometry (ballast bed, steel rails, wooden sleepers) for
 // GeoJSON line features near the camera. Entities are created on demand and
 // removed when the camera moves away to keep the entity count low.
 // Only active below DETAIL_MAX_ALTITUDE_M; the GeoJsonDataSource overview
 // line takes over above that threshold.
-export function RailTracks() {
+export function RailTracks({
+  show,
+  dataUrl,
+  enable3D,
+}: {
+  show: boolean;
+  dataUrl: string;
+  enable3D: boolean;
+}) {
   const { viewer } = useCesium();
+  const showRef = useRef(show);
+  const enable3DRef = useRef(enable3D);
+  const updateRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    showRef.current = show;
+    updateRef.current();
+  }, [show]);
+
+  useEffect(() => {
+    enable3DRef.current = enable3D;
+    updateRef.current();
+  }, [enable3D]);
 
   useEffect(() => {
     if (!viewer) return;
@@ -59,7 +81,7 @@ export function RailTracks() {
     const active: Record<string, Cesium.Entity> = {};
     let timeout: ReturnType<typeof setTimeout> | null = null;
 
-    fetch("/api/data/lines.geojson")
+    fetch(dataUrl)
       .then((r) => r.json())
       .then((fc: FeatureCollection<LineString>) => {
         features = fc.features.map((f) => ({
@@ -68,20 +90,22 @@ export function RailTracks() {
         }));
         ready = true;
       })
-      .catch((err) => console.error("Failed to load lines.geojson", err));
+      .catch((err) => console.error(`Failed to load ${dataUrl}`, err));
 
     const update = () => {
       if (!ready) return;
+
+      if (!showRef.current || !enable3DRef.current) {
+        clearEntities(viewer, active);
+        return;
+      }
 
       const cartographic = viewer.camera.positionCartographic;
       const terrainH = viewer.scene.globe.getHeight(cartographic) ?? 0;
       const altitudeM = cartographic.height - terrainH;
 
       if (altitudeM > DETAIL_MAX_ALTITUDE_M) {
-        if (Object.keys(active).length > 0) {
-          Object.values(active).forEach((e) => viewer.entities.remove(e));
-          for (const k in active) delete active[k];
-        }
+        if (Object.keys(active).length > 0) clearEntities(viewer, active);
         return;
       }
 
@@ -198,7 +222,7 @@ export function RailTracks() {
                   heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
                   extrudedHeightReference:
                     Cesium.HeightReference.RELATIVE_TO_GROUND,
-                  material: Cesium.Color.fromCssColorString(COLOR_BED),
+                  material: COLOR_BED,
                 },
               });
             }
@@ -240,7 +264,7 @@ export function RailTracks() {
                     heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
                     extrudedHeightReference:
                       Cesium.HeightReference.RELATIVE_TO_GROUND,
-                    material: Cesium.Color.fromCssColorString(COLOR_RAIL),
+                    material: COLOR_RAIL,
                   },
                 });
               }
@@ -279,7 +303,7 @@ export function RailTracks() {
                   heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
                   extrudedHeightReference:
                     Cesium.HeightReference.RELATIVE_TO_GROUND,
-                  material: Cesium.Color.fromCssColorString(COLOR_TIE),
+                  material: COLOR_TIE,
                 },
               });
             }
@@ -296,6 +320,8 @@ export function RailTracks() {
       }
     };
 
+    updateRef.current = update;
+
     const onCameraChanged = () => {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(update, CAMERA_DEBOUNCE_MS);
@@ -304,11 +330,12 @@ export function RailTracks() {
     viewer.camera.changed.addEventListener(onCameraChanged);
 
     return () => {
+      updateRef.current = () => {};
       if (timeout) clearTimeout(timeout);
       viewer.camera.changed.removeEventListener(onCameraChanged);
-      Object.values(active).forEach((e) => viewer.entities.remove(e));
+      clearEntities(viewer, active);
     };
-  }, [viewer]);
+  }, [viewer, dataUrl]);
 
   return null;
 }

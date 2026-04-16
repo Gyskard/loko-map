@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bearingDeg, perpOffset, computeBbox } from "./geo";
+import { bearingDeg, perpOffset, computeBbox, KM_PER_DEG } from "./geo";
 
 describe("bearingDeg", () => {
   it("returns 0 heading north", () => {
@@ -20,6 +20,12 @@ describe("bearingDeg", () => {
 
   it("returns ~45 heading northeast", () => {
     expect(bearingDeg(0, 0, 1, 1)).toBeCloseTo(45, 0);
+  });
+
+  it("returns 0 (not NaN) when both points are identical", () => {
+    const result = bearingDeg(2.3522, 48.8566, 2.3522, 48.8566);
+    expect(result).toBe(0);
+    expect(Number.isNaN(result)).toBe(false);
   });
 });
 
@@ -49,10 +55,10 @@ describe("perpOffset", () => {
   });
 
   it("offset of 1km is approximately 1/KM_PER_DEG degrees", () => {
-    const [, lat] = perpOffset(0, 0, 0, 1);
-    // heading north, right offset → moves east; latitude unchanged
-    // longitude shift ≈ 1 / KM_PER_DEG (at equator cosLat = 1)
+    const [lng, lat] = perpOffset(0, 0, 0, 1);
+    // heading north, right offset → moves east; at equator cosLat = 1
     expect(lat).toBeCloseTo(0, 5);
+    expect(lng).toBeCloseTo(1 / KM_PER_DEG, 5);
   });
 });
 
@@ -69,6 +75,10 @@ describe("computeBbox", () => {
 
   it("returns correct bbox for a single point", () => {
     expect(computeBbox([[5, 10]])).toEqual([5, 10, 5, 10]);
+  });
+
+  it("returns infinities for empty input", () => {
+    expect(computeBbox([])).toEqual([Infinity, Infinity, -Infinity, -Infinity]);
   });
 
   it("handles negative coordinates", () => {

@@ -1,17 +1,19 @@
 export const DEG2RAD = Math.PI / 180;
 
-// Approximate km per degree (used for fast planar distance estimates)
+// Approximate kilometers per degree of latitude (used for fast planar distance estimates).
 export const KM_PER_DEG = 111;
 
-// Forward bearing in degrees from point 1 → point 2
+// Returns the forward bearing in degrees from point 1 to point 2.
+// Returns 0 when both points are identical (atan2(0, 0) is undefined).
 export function bearingDeg(
   lng1: number,
   lat1: number,
   lng2: number,
   lat2: number,
 ): number {
-  const f1 = lat1 * DEG2RAD,
-    f2 = lat2 * DEG2RAD;
+  if (lng1 === lng2 && lat1 === lat2) return 0;
+  const f1 = lat1 * DEG2RAD;
+  const f2 = lat2 * DEG2RAD;
   const dl = (lng2 - lng1) * DEG2RAD;
   return (
     Math.atan2(
@@ -22,8 +24,8 @@ export function bearingDeg(
   );
 }
 
-// Offset a point perpendicular to `hdg` by `distKm`.
-// Positive distKm → right of heading, negative → left.
+// Returns a point offset perpendicularly from (`lng`, `lat`) along heading `hdg`.
+// Positive `distKm` offsets to the right of the heading; negative offsets to the left.
 export function perpOffset(
   lng: number,
   lat: number,
@@ -37,13 +39,15 @@ export function perpOffset(
   ];
 }
 
+// Returns the axis-aligned bounding box [minLng, minLat, maxLng, maxLat] for a
+// list of [lng, lat] coordinate pairs.
 export function computeBbox(
   coords: number[][],
 ): [number, number, number, number] {
-  let minLng = Infinity,
-    minLat = Infinity,
-    maxLng = -Infinity,
-    maxLat = -Infinity;
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
   for (const [lng, lat] of coords) {
     if (lng < minLng) minLng = lng;
     if (lat < minLat) minLat = lat;
