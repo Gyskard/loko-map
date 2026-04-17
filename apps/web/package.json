@@ -13,16 +13,16 @@
   },
   "dependencies": {
     "@loko-map/shared": "workspace:*",
-    "cesium": "^1.140.0",
-    "i18next": "^26.0.5",
+    "cesium": "1.140.0",
+    "i18next": "26.0.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-i18next": "^17.0.3",
-    "resium": "^1.20.1"
+    "react-i18next": "17.0.3",
+    "resium": "1.20.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.2.1",
-    "@types/geojson": "^7946.0.16",
+    "@types/geojson": "7946.0.16",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.1",
@@ -31,7 +31,7 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vite": "8.0.0",
-    "vite-plugin-cesium": "^1.2.23",
-    "vitest": "^4.1.0"
+    "vite-plugin-cesium": "1.2.23",
+    "vitest": "4.1.0"
   }
 }

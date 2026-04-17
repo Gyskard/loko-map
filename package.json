@@ -25,6 +25,6 @@
     ]
   },
   "dependencies": {
-    "@turf/nearest-point-on-line": "^7.3.4"
+    "@turf/nearest-point-on-line": "7.3.4"
   }
 }

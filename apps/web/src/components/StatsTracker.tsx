@@ -96,7 +96,7 @@ export function StatsTracker({ showActive, showInactive, onStats }: Props) {
     };
 
     loadLines("/api/data/lines.geojson", activeLines);
-    loadLines("/api/data/abandoned_lines.geojson", abandonedLines);
+    loadLines("/api/data/old_lines.geojson", abandonedLines);
     loadPoints("/api/data/stations.geojson", activeStations);
     loadPoints("/api/data/old_stations.geojson", oldStations);
 

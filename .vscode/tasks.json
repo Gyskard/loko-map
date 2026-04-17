@@ -4,7 +4,7 @@
     {
       "label": "build",
       "group": "build",
-      "dependsOn": ["format", "lint", "typecheck"]
+      "dependsOn": ["format", "lint", "typecheck", "test"]
     },
     {
       "label": "format",

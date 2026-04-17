@@ -376,7 +376,7 @@ export function MapViewer() {
           onLoad={styleGeoJsonLines}
         />
         <GeoJsonDataSource
-          data="/api/data/abandoned_lines.geojson"
+          data="/api/data/old_lines.geojson"
           clampToGround
           show={showInactive}
           onLoad={styleGeoJsonLines}
@@ -388,7 +388,7 @@ export function MapViewer() {
         />
         <RailTracks
           show={showInactive}
-          dataUrl="/api/data/abandoned_lines.geojson"
+          dataUrl="/api/data/old_lines.geojson"
           enable3D={enable3D}
         />
         <StationMarkers
