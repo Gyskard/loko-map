@@ -4,37 +4,39 @@ import * as Cesium from "cesium";
 import type { LineString, Point, FeatureCollection } from "geojson";
 import { computeLineFeature, sumVisibleKm, totalKm } from "@/utils/stats";
 import type { LineFeature } from "@/utils/stats";
+import type { StatsData } from "@/types";
 
 const CAMERA_DEBOUNCE_MS = 150;
-
-export type LineStats = { totalKm: number; visibleKm: number };
-export type StationStats = { total: number; visible: number };
-
-export type StatsData = {
-  activeLines: LineStats;
-  activeStations: StationStats;
-  abandonedLines: LineStats;
-  oldStations: StationStats;
-};
 
 type Props = {
   showActive: boolean;
   showInactive: boolean;
   onStats: (stats: StatsData) => void;
+  onError?: () => void;
 };
 
 type PointCoord = { lng: number; lat: number };
 
-export function StatsTracker({ showActive, showInactive, onStats }: Props) {
+export function StatsTracker({
+  showActive,
+  showInactive,
+  onStats,
+  onError,
+}: Props) {
   const { viewer } = useCesium();
   const showActiveRef = useRef(showActive);
   const showInactiveRef = useRef(showInactive);
   const onStatsRef = useRef(onStats);
+  const onErrorRef = useRef(onError);
   const computeRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     onStatsRef.current = onStats;
   }, [onStats]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     showActiveRef.current = showActive;
@@ -64,7 +66,10 @@ export function StatsTracker({ showActive, showInactive, onStats }: Props) {
 
     const loadLines = (url: string, target: LineFeature[]) => {
       fetch(url)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
         .then((fc: FeatureCollection<LineString>) => {
           for (const f of fc.features) {
             target.push(
@@ -74,14 +79,18 @@ export function StatsTracker({ showActive, showInactive, onStats }: Props) {
           loadedCount++;
           tryCompute();
         })
-        .catch((err) =>
-          console.error(`StatsTracker: failed to load ${url}`, err),
-        );
+        .catch((err) => {
+          console.error(`StatsTracker: failed to load ${url}`, err);
+          onErrorRef.current?.();
+        });
     };
 
     const loadPoints = (url: string, target: PointCoord[]) => {
       fetch(url)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
         .then((fc: FeatureCollection<Point>) => {
           for (const f of fc.features) {
             const [lng, lat] = f.geometry.coordinates;
@@ -90,9 +99,10 @@ export function StatsTracker({ showActive, showInactive, onStats }: Props) {
           loadedCount++;
           tryCompute();
         })
-        .catch((err) =>
-          console.error(`StatsTracker: failed to load ${url}`, err),
-        );
+        .catch((err) => {
+          console.error(`StatsTracker: failed to load ${url}`, err);
+          onErrorRef.current?.();
+        });
     };
 
     loadLines("/api/data/lines.geojson", activeLines);

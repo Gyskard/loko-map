@@ -39,6 +39,7 @@ type Props<T extends { id: string }> = {
   dataUrl: string;
   enable3D: boolean;
   onSelect: (props: T | null) => void;
+  onError?: () => void;
 };
 
 export function StationMarkers<T extends { id: string }>({
@@ -47,9 +48,11 @@ export function StationMarkers<T extends { id: string }>({
   dataUrl,
   enable3D,
   onSelect,
+  onError,
 }: Props<T>) {
   const { viewer } = useCesium();
   const onSelectRef = useRef(onSelect);
+  const onErrorRef = useRef(onError);
   const showRef = useRef(show);
   const enable3DRef = useRef(enable3D);
   const updateRef = useRef<() => void>(() => {});
@@ -63,6 +66,10 @@ export function StationMarkers<T extends { id: string }>({
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     showRef.current = show;
@@ -143,7 +150,10 @@ export function StationMarkers<T extends { id: string }>({
     };
 
     fetch(dataUrl)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((fc: FeatureCollection<Point>) => {
         if (cancelled) return;
 
@@ -168,7 +178,10 @@ export function StationMarkers<T extends { id: string }>({
         ready = true;
         update();
       })
-      .catch((err) => console.error(`Failed to load ${dataUrl}`, err));
+      .catch((err) => {
+        console.error(`Failed to load ${dataUrl}`, err);
+        onErrorRef.current?.();
+      });
 
     updateRef.current = update;
 

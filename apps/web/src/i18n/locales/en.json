@@ -25,6 +25,10 @@
   "popup": {
     "segment": "Segment",
     "uic": "UIC code",
-    "insee": "INSEE"
+    "insee": "INSEE",
+    "close": "Close"
+  },
+  "errors": {
+    "dataLoad": "Some map data failed to load. The display may be incomplete."
   }
 }

@@ -17,3 +17,17 @@ export type OldStationProperties = {
   nom?: string;
   uic: string;
 };
+
+export type LineStats = { totalKm: number; visibleKm: number };
+export type StationStats = { total: number; visible: number };
+
+export type StatsData = {
+  activeLines: LineStats;
+  activeStations: StationStats;
+  abandonedLines: LineStats;
+  oldStations: StationStats;
+};
+
+export type SelectedStation =
+  | { kind: "active"; props: StationProperties }
+  | { kind: "old"; props: OldStationProperties };

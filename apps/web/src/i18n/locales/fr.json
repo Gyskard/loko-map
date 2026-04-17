@@ -25,6 +25,10 @@
   "popup": {
     "segment": "Segment",
     "uic": "Code UIC",
-    "insee": "INSEE"
+    "insee": "INSEE",
+    "close": "Fermer"
+  },
+  "errors": {
+    "dataLoad": "Certaines données cartographiques n'ont pas pu être chargées. L'affichage peut être incomplet."
   }
 }

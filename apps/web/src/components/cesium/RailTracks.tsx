@@ -53,14 +53,17 @@ export function RailTracks({
   show,
   dataUrl,
   enable3D,
+  onError,
 }: {
   show: boolean;
   dataUrl: string;
   enable3D: boolean;
+  onError?: () => void;
 }) {
   const { viewer } = useCesium();
   const showRef = useRef(show);
   const enable3DRef = useRef(enable3D);
+  const onErrorRef = useRef(onError);
   const updateRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -74,6 +77,10 @@ export function RailTracks({
   }, [enable3D]);
 
   useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
     if (!viewer) return;
 
     let features: FeatureData[] = [];
@@ -82,7 +89,10 @@ export function RailTracks({
     let timeout: ReturnType<typeof setTimeout> | null = null;
 
     fetch(dataUrl)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((fc: FeatureCollection<LineString>) => {
         features = fc.features.map((f) => ({
           coords: f.geometry.coordinates,
@@ -90,7 +100,10 @@ export function RailTracks({
         }));
         ready = true;
       })
-      .catch((err) => console.error(`Failed to load ${dataUrl}`, err));
+      .catch((err) => {
+        console.error(`Failed to load ${dataUrl}`, err);
+        onErrorRef.current?.();
+      });
 
     const update = () => {
       if (!ready) return;

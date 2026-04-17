@@ -1,14 +1,22 @@
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
+import fastifyRateLimit from "@fastify/rate-limit";
 import { APP_NAME } from "@loko-map/shared";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
 const app = Fastify({ logger: true });
 
 const API_PREFIX = "/api";
+
+await app.register(fastifyRateLimit, {
+  max: 60,
+  timeWindow: "1 minute",
+});
 
 app.register(fastifyStatic, {
   root: join(__dirname, "../data"),
@@ -19,7 +27,7 @@ app.get(`${API_PREFIX}/health`, async () => {
   return { status: "ok", message: `${APP_NAME} API is running` };
 });
 
-app.listen({ port: 3001, host: "0.0.0.0" }, (err) => {
+app.listen({ port: 3001, host: IS_PROD ? "0.0.0.0" : "127.0.0.1" }, (err) => {
   if (err) {
     app.log.error(err);
     process.exit(1);

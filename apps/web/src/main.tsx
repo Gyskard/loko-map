@@ -5,7 +5,13 @@ import "./index.css";
 import "./i18n";
 import App from "./App";
 
-Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN ?? "";
+const cesiumToken = import.meta.env.VITE_CESIUM_TOKEN ?? "";
+if (!cesiumToken && import.meta.env.DEV) {
+  console.warn(
+    "[loko-map] VITE_CESIUM_TOKEN is not set. Cesium Ion assets (terrain, imagery) will not load. Set the token in your .env file.",
+  );
+}
+Cesium.Ion.defaultAccessToken = cesiumToken;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
