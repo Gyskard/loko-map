@@ -19,6 +19,7 @@ export type OldStationProperties = {
 };
 
 export type LineStats = { totalKm: number; visibleKm: number };
+
 export type StationStats = { total: number; visible: number };
 
 export type StatsData = {
@@ -31,3 +32,11 @@ export type StatsData = {
 export type SelectedStation =
   | { kind: "active"; props: StationProperties }
   | { kind: "old"; props: OldStationProperties };
+
+export type TrainInfo = {
+  label: string;
+  nearStation?: string;
+  flyTo: () => void;
+};
+
+export type { TrainRow, SncfData } from "@loko-map/shared";

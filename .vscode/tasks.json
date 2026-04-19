@@ -4,7 +4,7 @@
     {
       "label": "check",
       "group": "build",
-      "dependsOn": ["format", "lint", "typecheck", "test"]
+      "dependsOn": ["format", "lint", "typecheck", "test", "e2e-test", "build"]
     },
     {
       "label": "format",
@@ -28,6 +28,12 @@
       "label": "test",
       "type": "shell",
       "command": "pnpm run test",
+      "group": "build"
+    },
+    {
+      "label": "e2e-test",
+      "type": "shell",
+      "command": "pnpm run test:e2e",
       "group": "build"
     },
     {

@@ -44,4 +44,5 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 ENV NODE_ENV=production
 EXPOSE 3001
 
+USER node
 CMD ["node", "apps/api/dist/server.js"]

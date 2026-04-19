@@ -1,17 +1,22 @@
 {
   "app": {
-    "name": "Loko-map"
+    "name": "Loko-map",
+    "loading": "Chargement de la carte…",
+    "loadTimeout": "Le chargement de la carte prend trop de temps. Vérifiez votre connexion et rechargez."
   },
   "control": {
     "section": "Données affichées",
     "active": "Gares et lignes actives",
-    "inactive": "Gares et lignes non actives"
+    "inactive": "Anciennes gares et lignes",
+    "trains": "Locomotives (simulées)",
+    "trainNear": "près de la gare de {{station}}"
   },
   "settings": {
     "title": "Paramètres",
     "language": "Langue",
     "showStats": "Statistiques",
-    "enable3D": "Rendu 3D"
+    "enable3D": "Rendu 3D",
+    "showTrains": "Locomotives simulées"
   },
   "stats": {
     "title": "Statistiques",
@@ -19,6 +24,7 @@
     "lines": "Lignes",
     "activeStations": "Gares actives",
     "oldStations": "Anciennes gares",
+    "trains": "Locomotives simulées",
     "visibleOfKm": "{{visible}} visibles sur {{total}}",
     "visibleOfCount": "{{visible}} visibles sur {{total}}"
   },
@@ -26,9 +32,17 @@
     "segment": "Segment",
     "uic": "Code UIC",
     "insee": "INSEE",
-    "close": "Fermer"
+    "close": "Fermer",
+    "departures": "Prochains départs",
+    "arrivals": "Prochaines arrivées",
+    "lines": "Lignes desservies",
+    "sncfError": "Impossible de charger les données SNCF",
+    "noDepartures": "Aucun départ prévu",
+    "noArrivals": "Aucune arrivée prévue"
   },
   "errors": {
-    "dataLoad": "Certaines données cartographiques n'ont pas pu être chargées. L'affichage peut être incomplet."
+    "dataLoad": "Certaines données cartographiques n'ont pas pu être chargées. L'affichage peut être incomplet.",
+    "crashed": "La carte n'a pas pu s'afficher.",
+    "reload": "Recharger"
   }
 }

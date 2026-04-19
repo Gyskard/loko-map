@@ -11,3 +11,5 @@ I'd like to develop several features, such as displaying the approximate locatio
 - NodeJS
 - PNPM
 - Fastify
+
+pnpm --filter @loko-map/web exec playwright install chromium

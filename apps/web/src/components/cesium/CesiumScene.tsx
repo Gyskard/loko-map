@@ -5,50 +5,46 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 import { RailTracks } from "./RailTracks";
 import { StationMarkers } from "./StationMarkers";
 import { StatsTracker } from "./StatsTracker";
+import { SteamTrains } from "./SteamTrains";
 import type {
   StatsData,
   StationProperties,
   OldStationProperties,
+  TrainInfo,
 } from "@/types";
+import { LINE_COLOR, STATION_COLOR, INACTIVE_COLOR } from "@/constants";
+import { DATA_URLS } from "@/api";
+import CREDIT from "./credit.html?raw";
 
-const topoImageryProvider = new Cesium.UrlTemplateImageryProvider({
+const imageryProvider = new Cesium.UrlTemplateImageryProvider({
   url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
   subdomains: ["a", "b", "c", "d"],
-  credit: "© OpenStreetMap contributors © CARTO",
+  credit: CREDIT,
   maximumLevel: 19,
 });
 
-const INITIAL_DESTINATION = Cesium.Cartesian3.fromDegrees(
+const initialDestination = Cesium.Cartesian3.fromDegrees(
   2.3522,
   46.2276,
   2_000_000,
 );
 
-// Shared style for both active and abandoned line GeoJsonDataSources.
-// Active and abandoned lines use the same visual appearance (gray track colour);
-// their distinction is handled by show/hide, not colour.
-function styleGeoJsonLines(ds: Cesium.GeoJsonDataSource) {
+// Shared style for both active and old line GeoJsonDataSources
+const styleGeoJsonLines = (ds: Cesium.GeoJsonDataSource) => {
   ds.entities.values.forEach((entity) => {
     if (!entity.polyline) return;
+
     entity.polyline.width = new Cesium.ConstantProperty(2);
+
     entity.polyline.material = new Cesium.ColorMaterialProperty(
-      Cesium.Color.fromCssColorString("#7a6a5a"),
+      Cesium.Color.fromCssColorString(LINE_COLOR),
     );
+
     entity.polyline.clampToGround = new Cesium.ConstantProperty(true);
   });
-}
-
-type Props = {
-  showActive: boolean;
-  showInactive: boolean;
-  enable3D: boolean;
-  onStats: (stats: StatsData) => void;
-  onError: () => void;
-  onStationSelect: (props: StationProperties | null) => void;
-  onOldStationSelect: (props: OldStationProperties | null) => void;
 };
 
-export function CesiumScene({
+export const CesiumScene = ({
   showActive,
   showInactive,
   enable3D,
@@ -56,12 +52,24 @@ export function CesiumScene({
   onError,
   onStationSelect,
   onOldStationSelect,
-}: Props) {
+  onTrainsReady,
+  showTrains,
+}: {
+  showActive: boolean;
+  showInactive: boolean;
+  enable3D: boolean;
+  onStats: (stats: StatsData) => void;
+  onError: () => void;
+  onStationSelect: (props: StationProperties | null) => void;
+  onOldStationSelect: (props: OldStationProperties | null) => void;
+  onTrainsReady: (trains: TrainInfo[]) => void;
+  showTrains: boolean;
+}) => {
   useEffect(() => {
     const handler = () => onError();
-    topoImageryProvider.errorEvent.addEventListener(handler);
+    imageryProvider.errorEvent.addEventListener(handler);
     return () => {
-      topoImageryProvider.errorEvent.removeEventListener(handler);
+      imageryProvider.errorEvent.removeEventListener(handler);
     };
   }, [onError]);
 
@@ -80,17 +88,17 @@ export function CesiumScene({
       sceneModePicker={false}
       baseLayer={false}
     >
-      <CameraFlyTo destination={INITIAL_DESTINATION} once />
-      <ImageryLayer imageryProvider={topoImageryProvider} />
+      <CameraFlyTo destination={initialDestination} once />
+      <ImageryLayer imageryProvider={imageryProvider} />
       <GeoJsonDataSource
-        data="/api/data/lines.geojson"
+        data={DATA_URLS.lines}
         clampToGround
         show={showActive}
         onLoad={styleGeoJsonLines}
         onError={onError}
       />
       <GeoJsonDataSource
-        data="/api/data/old_lines.geojson"
+        data={DATA_URLS.oldLines}
         clampToGround
         show={showInactive}
         onLoad={styleGeoJsonLines}
@@ -98,28 +106,28 @@ export function CesiumScene({
       />
       <RailTracks
         show={showActive}
-        dataUrl="/api/data/lines.geojson"
+        dataUrl={DATA_URLS.lines}
         enable3D={enable3D}
         onError={onError}
       />
       <RailTracks
         show={showInactive}
-        dataUrl="/api/data/old_lines.geojson"
+        dataUrl={DATA_URLS.oldLines}
         enable3D={enable3D}
         onError={onError}
       />
       <StationMarkers
         show={showActive}
-        color="#e63946"
-        dataUrl="/api/data/stations.geojson"
+        color={STATION_COLOR}
+        dataUrl={DATA_URLS.stations}
         enable3D={enable3D}
         onSelect={onStationSelect}
         onError={onError}
       />
       <StationMarkers
         show={showInactive}
-        color="#3b82f6"
-        dataUrl="/api/data/old_stations.geojson"
+        color={INACTIVE_COLOR}
+        dataUrl={DATA_URLS.oldStations}
         enable3D={enable3D}
         onSelect={onOldStationSelect}
         onError={onError}
@@ -130,6 +138,12 @@ export function CesiumScene({
         onStats={onStats}
         onError={onError}
       />
+      <SteamTrains
+        show={showInactive && showTrains}
+        enable3D={enable3D}
+        onTrainsReady={onTrainsReady}
+        onError={onError}
+      />
     </Viewer>
   );
-}
+};

@@ -1,17 +1,22 @@
 {
   "app": {
-    "name": "Loko-map"
+    "name": "Loko-map",
+    "loading": "Loading map…",
+    "loadTimeout": "The map is taking too long to load. Check your connection and reload."
   },
   "control": {
     "section": "Displayed data",
     "active": "Active stations & lines",
-    "inactive": "Inactive stations & lines"
+    "inactive": "Old stations & lines",
+    "trains": "Locomotives (simulated)",
+    "trainNear": "near {{station}} station"
   },
   "settings": {
     "title": "Settings",
     "language": "Language",
     "showStats": "Statistics",
-    "enable3D": "3D rendering"
+    "enable3D": "3D rendering",
+    "showTrains": "Simulated locomotives"
   },
   "stats": {
     "title": "Statistics",
@@ -19,6 +24,7 @@
     "lines": "Lines",
     "activeStations": "Active stations",
     "oldStations": "Former stations",
+    "trains": "Simulated locomotives",
     "visibleOfKm": "{{visible}} visible out of {{total}}",
     "visibleOfCount": "{{visible}} visible out of {{total}}"
   },
@@ -26,9 +32,17 @@
     "segment": "Segment",
     "uic": "UIC code",
     "insee": "INSEE",
-    "close": "Close"
+    "close": "Close",
+    "departures": "Next departures",
+    "arrivals": "Next arrivals",
+    "lines": "Lines served",
+    "sncfError": "Could not load SNCF data",
+    "noDepartures": "No upcoming departures",
+    "noArrivals": "No upcoming arrivals"
   },
   "errors": {
-    "dataLoad": "Some map data failed to load. The display may be incomplete."
+    "dataLoad": "Some map data failed to load. The display may be incomplete.",
+    "crashed": "The map could not be displayed.",
+    "reload": "Reload"
   }
 }

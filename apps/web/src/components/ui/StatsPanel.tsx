@@ -1,6 +1,11 @@
 import { useTranslation } from "react-i18next";
 import type { StatsData } from "@/types";
-import { LINE_COLOR, STATION_COLOR, INACTIVE_COLOR } from "@/mapConstants";
+import {
+  LINE_COLOR,
+  STATION_COLOR,
+  INACTIVE_COLOR,
+  TRAIN_COLOR,
+} from "@/constants";
 
 type StatRow =
   | {
@@ -16,19 +21,28 @@ type StatRow =
       label: string;
       visible: number;
       total: number;
+    }
+  | {
+      kind: "total";
+      dot: string;
+      label: string;
+      total: number;
     };
 
-function fmtKm(km: number) {
-  return `${km.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} km`;
-}
+const formatKm = (km: number, locale: string) =>
+  `${km.toLocaleString(locale, { maximumFractionDigits: 0 })} km`;
 
-type Props = {
+export const StatsPanel = ({
+  stats,
+  showActive,
+  showInactive,
+  trainsCount,
+}: {
   stats: StatsData | null;
   showActive: boolean;
   showInactive: boolean;
-};
-
-export function StatsPanel({ stats, showActive, showInactive }: Props) {
+  trainsCount: number;
+}) => {
   const { t, i18n } = useTranslation();
   const rows: StatRow[] = [];
 
@@ -47,6 +61,7 @@ export function StatsPanel({ stats, showActive, showInactive }: Props) {
       totalKm,
     });
   }
+
   if (showActive && stats) {
     rows.push({
       kind: "count",
@@ -55,6 +70,7 @@ export function StatsPanel({ stats, showActive, showInactive }: Props) {
       ...stats.activeStations,
     });
   }
+
   if (showInactive && stats) {
     rows.push({
       kind: "count",
@@ -64,9 +80,18 @@ export function StatsPanel({ stats, showActive, showInactive }: Props) {
     });
   }
 
+  if (trainsCount > 0) {
+    rows.push({
+      kind: "total",
+      dot: TRAIN_COLOR,
+      label: t("stats.trains"),
+      total: trainsCount,
+    });
+  }
+
   return (
     <div
-      className="fixed right-4 top-4 z-50 w-90 rounded-xl bg-white shadow-xl"
+      className="fixed right-4 top-4 z-50 w-[calc(100vw-2rem)] sm:w-90 rounded-xl bg-white shadow-xl"
       aria-label={t("stats.title")}
       role="region"
     >
@@ -91,13 +116,15 @@ export function StatsPanel({ stats, showActive, showInactive }: Props) {
                 <span className="ml-auto whitespace-nowrap font-mono text-xs text-gray-500">
                   {row.kind === "km"
                     ? t("stats.visibleOfKm", {
-                        visible: fmtKm(row.visibleKm),
-                        total: fmtKm(row.totalKm),
+                        visible: formatKm(row.visibleKm, i18n.language),
+                        total: formatKm(row.totalKm, i18n.language),
                       })
-                    : t("stats.visibleOfCount", {
-                        visible: row.visible.toLocaleString(i18n.language),
-                        total: row.total.toLocaleString(i18n.language),
-                      })}
+                    : row.kind === "count"
+                      ? t("stats.visibleOfCount", {
+                          visible: row.visible.toLocaleString(i18n.language),
+                          total: row.total.toLocaleString(i18n.language),
+                        })
+                      : row.total.toLocaleString(i18n.language)}
                 </span>
               </div>
             ))}
@@ -106,4 +133,4 @@ export function StatsPanel({ stats, showActive, showInactive }: Props) {
       </div>
     </div>
   );
-}
+};

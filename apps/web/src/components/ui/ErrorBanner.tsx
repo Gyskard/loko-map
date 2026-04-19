@@ -1,11 +1,8 @@
 import { useTranslation } from "react-i18next";
 
-type Props = {
-  onClose: () => void;
-};
-
-export function ErrorBanner({ onClose }: Props) {
+export const ErrorBanner = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
+
   return (
     <div
       role="alert"
@@ -15,10 +12,10 @@ export function ErrorBanner({ onClose }: Props) {
       <button
         onClick={onClose}
         aria-label={t("popup.close")}
-        className="text-red-400 hover:text-red-700"
+        className="p-2 text-red-400 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 rounded"
       >
         ×
       </button>
     </div>
   );
-}
+};

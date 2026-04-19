@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CesiumScene } from "./cesium/CesiumScene";
 import { ControlPanel } from "./ui/ControlPanel";
 import { StatsPanel } from "./ui/StatsPanel";
@@ -6,28 +7,16 @@ import { StationPopup } from "./ui/StationPopup";
 import { ErrorBanner } from "./ui/ErrorBanner";
 import type {
   SelectedStation,
-  StatsData,
   StationProperties,
   OldStationProperties,
+  StatsData,
+  TrainInfo,
 } from "@/types";
 
-// Module-level factory — avoids duplicating the select/deselect logic for
-// each station kind. Safe to pass `setter` directly since useState setters
-// are stable across renders.
-function makeSelectHandler<T>(
-  kind: SelectedStation["kind"],
-  setter: React.Dispatch<React.SetStateAction<SelectedStation | null>>,
-) {
-  return (props: T | null) => {
-    if (props) {
-      setter({ kind, props } as unknown as SelectedStation);
-    } else {
-      setter((prev) => (prev?.kind === kind ? null : prev));
-    }
-  };
-}
+const LOADING_TIMEOUT_MS = 10_000;
 
-export function MapViewer() {
+export const MapViewer = () => {
+  const { t } = useTranslation();
   const [showActive, setShowActive] = useState(true);
   const [showInactive, setShowInactive] = useState(false);
   const [selectedStation, setSelectedStation] =
@@ -36,17 +25,31 @@ export function MapViewer() {
   const [showStats, setShowStats] = useState(true);
   const [enable3D, setEnable3D] = useState(true);
   const [dataError, setDataError] = useState(false);
+  const [trains, setTrains] = useState<TrainInfo[]>([]);
+  const [showTrains, setShowTrains] = useState(true);
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
 
-  // StationMarkers stores these in a ref, so new function instances on each
-  // render are harmless — useCallback would add noise without any benefit.
-  const handleStationSelect = makeSelectHandler<StationProperties>(
-    "active",
-    setSelectedStation,
-  );
-  const handleOldStationSelect = makeSelectHandler<OldStationProperties>(
-    "old",
-    setSelectedStation,
-  );
+  useEffect(() => {
+    if (stats) return;
+    const id = setTimeout(() => setLoadTimedOut(true), LOADING_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [stats]);
+
+  const handleStationSelect = (props: StationProperties | null) => {
+    if (props) {
+      setSelectedStation({ kind: "active", props });
+    } else {
+      setSelectedStation((prev) => (prev?.kind === "active" ? null : prev));
+    }
+  };
+
+  const handleOldStationSelect = (props: OldStationProperties | null) => {
+    if (props) {
+      setSelectedStation({ kind: "old", props });
+    } else {
+      setSelectedStation((prev) => (prev?.kind === "old" ? null : prev));
+    }
+  };
 
   return (
     <>
@@ -58,6 +61,8 @@ export function MapViewer() {
         onError={() => setDataError(true)}
         onStationSelect={handleStationSelect}
         onOldStationSelect={handleOldStationSelect}
+        onTrainsReady={setTrains}
+        showTrains={showTrains}
       />
       <ControlPanel
         showActive={showActive}
@@ -78,12 +83,16 @@ export function MapViewer() {
         onToggleStats={() => setShowStats((prev) => !prev)}
         enable3D={enable3D}
         onToggle3D={() => setEnable3D((prev) => !prev)}
+        trains={trains}
+        showTrains={showTrains}
+        onToggleTrains={() => setShowTrains((prev) => !prev)}
       />
       {showStats && (
         <StatsPanel
           stats={stats}
           showActive={showActive}
           showInactive={showInactive}
+          trainsCount={showTrains && showInactive ? trains.length : 0}
         />
       )}
       {selectedStation && (
@@ -93,6 +102,32 @@ export function MapViewer() {
         />
       )}
       {dataError && <ErrorBanner onClose={() => setDataError(false)} />}
+      {!stats && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex max-w-sm flex-col items-center gap-3 px-6 text-center text-gray-500">
+            {loadTimedOut ? (
+              <>
+                <span className="text-sm">{t("app.loadTimeout")}</span>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="rounded bg-gray-800 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
+                >
+                  {t("errors.reload")}
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                <span className="text-sm">{t("app.loading")}</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
-}
+};

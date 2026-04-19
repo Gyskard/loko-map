@@ -9,17 +9,12 @@ import {
   totalKm,
 } from "../src/utils/stats";
 
-// ---------------------------------------------------------------------------
-// haversineKm
-// ---------------------------------------------------------------------------
-
 describe("haversineKm", () => {
   it("returns 0 for identical points", () => {
     expect(haversineKm(2.3522, 48.8566, 2.3522, 48.8566)).toBe(0);
   });
 
   it("Paris → Lyon is approximately 392 km", () => {
-    // Paris (2.3522, 48.8566) → Lyon (4.8357, 45.7640)
     expect(haversineKm(2.3522, 48.8566, 4.8357, 45.764)).toBeCloseTo(392, -1);
   });
 
@@ -33,10 +28,6 @@ describe("haversineKm", () => {
     expect(haversineKm(0, 0, 1, 0)).toBeGreaterThan(0);
   });
 });
-
-// ---------------------------------------------------------------------------
-// computeLineFeature
-// ---------------------------------------------------------------------------
 
 describe("computeLineFeature", () => {
   it("computes bbox correctly", () => {
@@ -72,10 +63,6 @@ describe("computeLineFeature", () => {
     expect(computeLineFeature(coords).coords).toBe(coords);
   });
 });
-
-// ---------------------------------------------------------------------------
-// bboxIntersectsRect
-// ---------------------------------------------------------------------------
 
 describe("bboxIntersectsRect", () => {
   const bbox = { minLng: 1, minLat: 1, maxLng: 3, maxLat: 3 };
@@ -113,12 +100,7 @@ describe("bboxIntersectsRect", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// clipSegment
-// ---------------------------------------------------------------------------
-
 describe("clipSegment", () => {
-  // rect: x ∈ [0,4], y ∈ [0,4]
   const R = { w: 0, s: 0, e: 4, n: 4 } as const;
   const clip = (x0: number, y0: number, x1: number, y1: number) =>
     clipSegment(x0, y0, x1, y1, R.w, R.s, R.e, R.n);
@@ -138,14 +120,13 @@ describe("clipSegment", () => {
   it("clips a segment entering from the left", () => {
     const seg = clip(-2, 2, 2, 2);
     expect(seg).not.toBeNull();
-    expect(seg![0]).toBeCloseTo(0, 5); // clipped x0 = west boundary
+    expect(seg![0]).toBeCloseTo(0, 5);
     expect(seg![1]).toBeCloseTo(2, 5);
     expect(seg![2]).toBeCloseTo(2, 5);
     expect(seg![3]).toBeCloseTo(2, 5);
   });
 
   it("clips a diagonal segment crossing the rect", () => {
-    // segment from (-1,-1) to (5,5) — enters at (0,0), exits at (4,4)
     const seg = clip(-1, -1, 5, 5);
     expect(seg).not.toBeNull();
     expect(seg![0]).toBeCloseTo(0, 5);
@@ -155,7 +136,6 @@ describe("clipSegment", () => {
   });
 
   it("returns null when segment passes along an edge but outside", () => {
-    // y = -1, horizontal — parallel to bottom edge and below it
     expect(clip(-2, -1, 6, -1)).toBeNull();
   });
 
@@ -163,10 +143,6 @@ describe("clipSegment", () => {
     expect(clip(2, 2, 2, 2)).toEqual([2, 2, 2, 2]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// visibleKmForLine
-// ---------------------------------------------------------------------------
 
 describe("visibleKmForLine", () => {
   it("returns full line length when fully inside viewport", () => {
@@ -187,8 +163,6 @@ describe("visibleKmForLine", () => {
   });
 
   it("returns roughly half the length when only half is inside", () => {
-    // horizontal segment from lng=0 to lng=4 at lat=1; viewport covers [0,4] in x but only [0,2] in y → full segment inside
-    // Instead: segment lng 0→4, lat 1; viewport [0,2] in lng
     const coords = [
       [0, 1],
       [4, 1],
@@ -202,10 +176,6 @@ describe("visibleKmForLine", () => {
     expect(visibleKmForLine([[1, 1]], 0, 0, 4, 4)).toBe(0);
   });
 });
-
-// ---------------------------------------------------------------------------
-// sumVisibleKm / totalKm
-// ---------------------------------------------------------------------------
 
 describe("totalKm", () => {
   it("sums lengthKm across all features", () => {

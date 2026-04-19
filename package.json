@@ -9,6 +9,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "test:e2e": "turbo run test:e2e",
     "format": "prettier --write ."
   },
   "devDependencies": {
@@ -23,8 +24,5 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
-  },
-  "dependencies": {
-    "@turf/nearest-point-on-line": "7.3.4"
   }
 }

@@ -4,29 +4,17 @@ import * as Cesium from "cesium";
 import type { Point, FeatureCollection } from "geojson";
 import { KM_PER_DEG } from "@/utils/geo";
 import { clearEntities } from "@/utils/cesium";
+import { cachedFetch } from "@/utils/fetchCache";
+import { pinIcon } from "@/utils/pinIcon";
 
-// Altitude below which 3D billboard markers replace the flat overview dots
+// Tracks which StationMarkers instances currently want a "pointer" cursor.
+// Using a WeakMap keyed on the canvas means it's automatically cleaned up
+// and shared across all marker instances for the same viewer.
+const cursorWanted = new WeakMap<HTMLCanvasElement, Set<symbol>>();
+
 const STATION_3D_MAX_ALTITUDE_M = 50_000;
-
-// Radius around the camera within which billboard entities are created (km)
 const RENDER_RADIUS_KM = 100;
-
 const CAMERA_DEBOUNCE_MS = 200;
-
-// Returns a data-URI for a pin-shaped SVG marker with a small train-car icon
-// centred inside the circle. The pin tip sits at the bottom of the 40×52 viewport
-// so Cesium's BOTTOM vertical-origin aligns the tip with the station coordinate.
-const makeIcon = (color: string) =>
-  `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 52" width="40" height="52">` +
-      `<path d="M20 1C9.5 1 1 9.5 1 20C1 33 20 51 20 51C20 51 39 33 39 20C39 9.5 30.5 1 20 1Z" fill="${color}"/>` +
-      `<circle cx="20" cy="20" r="13" fill="white"/>` +
-      `<rect x="12" y="14" width="16" height="10" rx="2" fill="${color}"/>` +
-      `<rect x="14" y="16" width="4" height="3" rx="1" fill="white"/>` +
-      `<rect x="22" y="16" width="4" height="3" rx="1" fill="white"/>` +
-      `<rect x="11" y="25" width="18" height="2" rx="1" fill="${color}"/>` +
-      `</svg>`,
-  )}`;
 
 type Station<T> = {
   coord: [number, number];
@@ -42,14 +30,14 @@ type Props<T extends { id: string }> = {
   onError?: () => void;
 };
 
-export function StationMarkers<T extends { id: string }>({
+export const StationMarkers = <T extends { id: string }>({
   show,
   color,
   dataUrl,
   enable3D,
   onSelect,
   onError,
-}: Props<T>) {
+}: Props<T>) => {
   const { viewer } = useCesium();
   const onSelectRef = useRef(onSelect);
   const onErrorRef = useRef(onError);
@@ -57,7 +45,7 @@ export function StationMarkers<T extends { id: string }>({
   const enable3DRef = useRef(enable3D);
   const updateRef = useRef<() => void>(() => {});
 
-  const icon = useMemo(() => makeIcon(color), [color]);
+  const icon = useMemo(() => pinIcon(color), [color]);
   const cesiumColor = useMemo(
     () => Cesium.Color.fromCssColorString(color),
     [color],
@@ -143,18 +131,14 @@ export function StationMarkers<T extends { id: string }>({
             },
           });
         } else if (!visible && entityId in active) {
-          viewer.entities.remove(active[entityId]);
+          viewer.entities.remove(active[entityId]!);
           delete active[entityId];
         }
       }
     };
 
-    fetch(dataUrl)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((fc: FeatureCollection<Point>) => {
+    cachedFetch<FeatureCollection<Point>>(dataUrl)
+      .then((fc) => {
         if (cancelled) return;
 
         stations = fc.features.map((f) => ({
@@ -188,26 +172,39 @@ export function StationMarkers<T extends { id: string }>({
     // Resolves a station id from a scene.pick() result regardless of whether
     // it came from a billboard Entity or a PointPrimitive.
     const pickStationId = (picked: unknown): string | null => {
-      if (!Cesium.defined(picked)) return null;
-      const p = picked as { id?: unknown };
-      if (p.id instanceof Cesium.Entity) {
-        const id = p.id.id as string;
-        return id in propsByStationId ? id : null;
+      if (!picked || typeof picked !== "object" || !("id" in picked)) {
+        return null;
       }
-      if (typeof p.id === "string" && p.id in propsByStationId) {
-        return p.id;
+      const { id } = picked as { id: unknown };
+      if (id instanceof Cesium.Entity) {
+        return typeof id.id === "string" && id.id in propsByStationId
+          ? id.id
+          : null;
       }
+      if (typeof id === "string" && id in propsByStationId) return id;
       return null;
     };
 
     const canvas = viewer.scene.canvas;
     const handler = new Cesium.ScreenSpaceEventHandler(canvas);
+    const markerId = Symbol();
+    if (!cursorWanted.has(canvas)) cursorWanted.set(canvas, new Set());
+    const wantedSet = cursorWanted.get(canvas)!;
 
     handler.setInputAction(
       (event: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
-        if (!showRef.current) return;
+        if (!showRef.current) {
+          wantedSet.delete(markerId);
+          canvas.style.cursor = wantedSet.size > 0 ? "pointer" : "";
+          return;
+        }
         const picked = viewer.scene.pick(event.endPosition);
-        canvas.style.cursor = pickStationId(picked) ? "pointer" : "";
+        if (pickStationId(picked)) {
+          wantedSet.add(markerId);
+        } else {
+          wantedSet.delete(markerId);
+        }
+        canvas.style.cursor = wantedSet.size > 0 ? "pointer" : "";
       },
       Cesium.ScreenSpaceEventType.MOUSE_MOVE,
     );
@@ -217,7 +214,7 @@ export function StationMarkers<T extends { id: string }>({
         if (!showRef.current) return;
         const stationId = pickStationId(viewer.scene.pick(event.position));
         if (stationId) {
-          onSelectRef.current(propsByStationId[stationId]);
+          onSelectRef.current(propsByStationId[stationId] ?? null);
         } else {
           onSelectRef.current(null);
         }
@@ -237,7 +234,8 @@ export function StationMarkers<T extends { id: string }>({
       updateRef.current = () => {};
       if (timeout) clearTimeout(timeout);
       handler.destroy();
-      canvas.style.cursor = "";
+      wantedSet.delete(markerId);
+      canvas.style.cursor = wantedSet.size > 0 ? "pointer" : "";
       viewer.camera.changed.removeEventListener(onCameraChanged);
       viewer.scene.primitives.remove(pointCollection);
       clearEntities(viewer, active);
@@ -245,4 +243,4 @@ export function StationMarkers<T extends { id: string }>({
   }, [viewer, icon, cesiumColor, dataUrl]);
 
   return null;
-}
+};

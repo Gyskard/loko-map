@@ -21,25 +21,32 @@
 
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 import fr from "./locales/fr.json";
 import en from "./locales/en.json";
 
-/** All languages the app supports. Keep in sync with the locales/ directory. */
 export const SUPPORTED_LANGUAGES = ["fr", "en"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-i18n.use(initReactI18next).init({
-  resources: {
-    fr: { translation: fr },
-    en: { translation: en },
-  },
-  lng: "fr",
-  fallbackLng: "en",
-  interpolation: {
-    // React already escapes all interpolated values in JSX; disabling i18next's
-    // own escaping prevents double-encoding of characters like & → &amp;amp;
-    escapeValue: false,
-  },
-});
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      fr: { translation: fr },
+      en: { translation: en },
+    },
+    fallbackLng: "fr",
+    supportedLngs: SUPPORTED_LANGUAGES,
+    interpolation: {
+      // React already escapes all interpolated values in JSX; disabling i18next's
+      // own escaping prevents double-encoding of characters like & → &amp;amp;
+      escapeValue: false,
+    },
+    detection: {
+      order: ["localStorage", "navigator"],
+      caches: ["localStorage"],
+    },
+  });
 
 export default i18n;

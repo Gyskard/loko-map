@@ -5,51 +5,33 @@ import type { LineString, FeatureCollection } from "geojson";
 import type { FeatureData } from "@/types";
 import { bearingDeg, perpOffset, computeBbox, KM_PER_DEG } from "@/utils/geo";
 import { clearEntities } from "@/utils/cesium";
+import { LINE_COLOR, RAIL_COLOR, TIE_COLOR } from "@/constants";
+import { cachedFetch } from "@/utils/fetchCache";
 
-// Switch from overview line to 3D track geometry below this altitude (m)
 const DETAIL_MAX_ALTITUDE_M = 500;
-
-// Radius around the camera within which 3D track entities are created (km)
 const RENDER_RADIUS_KM = 0.4;
-
-// Sub-divide each GeoJSON coord-pair into segments this long for terrain accuracy (km)
 const RAIL_SUBSEGMENT_KM = 0.005;
-
-// Camera-change debounce before re-rendering (ms)
-const CAMERA_DEBOUNCE_MS = 200;
-
-// Standard gauge: distance from track centre to each rail (km)
-const RAIL_GAUGE_KM = 0.00072;
-
-// Half-width of the ballast bed on each side of the centre line (km)
-const BED_HALF_WIDTH_KM = 0.0012;
-
-// Half-length of a sleeper on each side of the centre line (km)
-const TIE_HALF_LENGTH_KM = 0.0012;
-
-// Distance between consecutive sleepers (km)
-const TIE_SPACING_KM = 0.0006;
-
+const CAMERA_DEBOUNCE_MS = 200; // Debounce before re-rendering
+const RAIL_GAUGE_KM = 0.00072; // Distance from track centre to each rail
+const BED_HALF_WIDTH_KM = 0.0012; // Ballast bed on each side of centre line
+const TIE_HALF_LENGTH_KM = 0.0012; // Size of tie on each side of the centre line (km)
+const TIE_SPACING_KM = 0.0006; // Distance between consecutive ties (km)
 const BED_HEIGHT_M = 0.15;
 const RAIL_HEIGHT_M = 0.25;
 const RAIL_WIDTH_M = 0.12;
 const TIE_HEIGHT_M = 0.2;
 const TIE_WIDTH_M = 0.24;
-
-// Each feature endpoint is extended past its last coordinate so adjacent
-// features visually overlap at junctions despite bearing changes.
 const JUNCTION_OVERLAP_KM = 0.003;
 
-const COLOR_BED = Cesium.Color.fromCssColorString("#7a6a5a");
-const COLOR_RAIL = Cesium.Color.fromCssColorString("#c8c8c8");
-const COLOR_TIE = Cesium.Color.fromCssColorString("#7b4f1e");
+const COLOR_BED = Cesium.Color.fromCssColorString(LINE_COLOR);
+const COLOR_RAIL = Cesium.Color.fromCssColorString(RAIL_COLOR);
+const COLOR_TIE = Cesium.Color.fromCssColorString(TIE_COLOR);
 
-// Renders 3D track geometry (ballast bed, steel rails, wooden sleepers) for
-// GeoJSON line features near the camera. Entities are created on demand and
-// removed when the camera moves away to keep the entity count low.
-// Only active below DETAIL_MAX_ALTITUDE_M; the GeoJsonDataSource overview
-// line takes over above that threshold.
-export function RailTracks({
+// Renders 3D track geometry (ballast bed, steel rails, wooden sleepers)
+// Used 3D render and not a glb model because it's not possible to display enough rails
+// without fuck up the computer, this approach is way better for performance
+// Well, I got the idea but an LLM did the job. I mean... did you see the code? WTF
+export const RailTracks = ({
   show,
   dataUrl,
   enable3D,
@@ -59,7 +41,7 @@ export function RailTracks({
   dataUrl: string;
   enable3D: boolean;
   onError?: () => void;
-}) {
+}) => {
   const { viewer } = useCesium();
   const showRef = useRef(show);
   const enable3DRef = useRef(enable3D);
@@ -80,20 +62,19 @@ export function RailTracks({
     onErrorRef.current = onError;
   }, [onError]);
 
+  // Do a lot of things and at the end we have rails in 3D
+  // No comment below, good luck
   useEffect(() => {
     if (!viewer) return;
 
+    const active: Record<string, Cesium.Entity> = {};
+
     let features: FeatureData[] = [];
     let ready = false;
-    const active: Record<string, Cesium.Entity> = {};
     let timeout: ReturnType<typeof setTimeout> | null = null;
 
-    fetch(dataUrl)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((fc: FeatureCollection<LineString>) => {
+    cachedFetch<FeatureCollection<LineString>>(dataUrl)
+      .then((fc) => {
         features = fc.features.map((f) => ({
           coords: f.geometry.coordinates,
           bbox: computeBbox(f.geometry.coordinates),
@@ -130,9 +111,8 @@ export function RailTracks({
       const visibleIds = new Set<string>();
 
       for (let fi = 0; fi < features.length; fi++) {
-        const { coords, bbox } = features[fi];
+        const { coords, bbox } = features[fi]!;
 
-        // Broad-phase bbox rejection
         if (
           cameraLng < bbox[0] - bufferDeg ||
           cameraLng > bbox[2] + bufferDeg ||
@@ -141,12 +121,15 @@ export function RailTracks({
         )
           continue;
 
-        // Find the contiguous range of coord-pairs within 2× the render radius
         let minCi = Infinity;
         let maxCi = -Infinity;
         for (let ci = 0; ci < coords.length - 1; ci++) {
-          const [lng0, lat0] = coords[ci];
-          const [lng1, lat1] = coords[ci + 1];
+          const c0 = coords[ci]!;
+          const c1 = coords[ci + 1]!;
+          const lng0 = c0[0]!;
+          const lat0 = c0[1]!;
+          const lng1 = c1[0]!;
+          const lat1 = c1[1]!;
           const ax = (lng0 - cameraLng) * cosLat * KM_PER_DEG;
           const ay = (lat0 - cameraLat) * KM_PER_DEG;
           const bx = (lng1 - cameraLng) * cosLat * KM_PER_DEG;
@@ -162,12 +145,14 @@ export function RailTracks({
         if (minCi === Infinity) continue;
 
         for (let ci = minCi; ci <= maxCi; ci++) {
-          const [rawLng0, rawLat0] = coords[ci];
-          const [rawLng1, rawLat1] = coords[ci + 1];
+          const rc0 = coords[ci]!;
+          const rc1 = coords[ci + 1]!;
+          const rawLng0 = rc0[0]!;
+          const rawLat0 = rc0[1]!;
+          const rawLng1 = rc1[0]!;
+          const rawLat1 = rc1[1]!;
           const hdg = bearingDeg(rawLng0, rawLat0, rawLng1, rawLat1);
 
-          // Extend the first/last segment past the feature endpoint so adjacent
-          // features overlap slightly and avoid visible gaps at junctions.
           const [lng0, lat0] =
             ci === 0
               ? perpOffset(rawLng0, rawLat0, hdg - 90, -JUNCTION_OVERLAP_KM)
@@ -187,7 +172,6 @@ export function RailTracks({
           );
           const tieSteps = Math.max(1, Math.round(segLenKm / TIE_SPACING_KM));
 
-          // Ballast bed — one rectangle per tie-spacing section (no rounded ends)
           for (let bi = 0; bi < tieSteps; bi++) {
             const t0 = bi / tieSteps;
             const t1 = (bi + 1) / tieSteps;
@@ -195,32 +179,39 @@ export function RailTracks({
             const bLat0 = lat0 + t0 * (lat1 - lat0);
             const bLng1 = lng0 + t1 * (lng1 - lng0);
             const bLat1 = lat0 + t1 * (lat1 - lat0);
+
             const [llng0, llat0] = perpOffset(
               bLng0,
               bLat0,
               hdg,
               -BED_HALF_WIDTH_KM,
             );
+
             const [rlng0, rlat0] = perpOffset(
               bLng0,
               bLat0,
               hdg,
               BED_HALF_WIDTH_KM,
             );
+
             const [rlng1, rlat1] = perpOffset(
               bLng1,
               bLat1,
               hdg,
               BED_HALF_WIDTH_KM,
             );
+
             const [llng1, llat1] = perpOffset(
               bLng1,
               bLat1,
               hdg,
               -BED_HALF_WIDTH_KM,
             );
+
             const bedId = `bed-${fi}-${ci}-${bi}`;
+
             visibleIds.add(bedId);
+
             if (!(bedId in active)) {
               active[bedId] = viewer.entities.add({
                 polygon: {
@@ -241,7 +232,6 @@ export function RailTracks({
             }
           }
 
-          // Steel rails — subdivided into short segments for accurate ground-following
           for (const side of [-1, 1] as const) {
             for (let ri = 0; ri < railSteps; ri++) {
               const t0 = ri / railSteps;
@@ -284,7 +274,6 @@ export function RailTracks({
             }
           }
 
-          // Wooden sleepers — one per tie-spacing position
           for (let si = 0; si < tieSteps; si++) {
             const t = si / tieSteps;
             const lng = lng0 + t * (lng1 - lng0);
@@ -324,10 +313,9 @@ export function RailTracks({
         }
       }
 
-      // Remove entities that are no longer in the visible area
       for (const id in active) {
         if (!visibleIds.has(id)) {
-          viewer.entities.remove(active[id]);
+          viewer.entities.remove(active[id]!);
           delete active[id];
         }
       }
@@ -351,4 +339,4 @@ export function RailTracks({
   }, [viewer, dataUrl]);
 
   return null;
-}
+};
