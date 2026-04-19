@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { SelectedStation, TrainRow, SncfData } from "@/types";
+import type { SncfLineInfo } from "@loko-map/shared";
 import { DATA_URLS } from "@/api";
 import { parseSncfTime } from "@/utils/time";
 
@@ -173,7 +174,7 @@ const StationPopupInner = ({ selected, onClose }: Props) => {
                 {fetchState.data.lines.length > 0 && (
                   <Section title={t("popup.lines")}>
                     <div className="flex flex-wrap gap-1">
-                      {fetchState.data.lines.map((l) => (
+                      {fetchState.data.lines.map((l: SncfLineInfo) => (
                         <span
                           key={l.id}
                           className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600"
@@ -192,7 +193,7 @@ const StationPopupInner = ({ selected, onClose }: Props) => {
                     </p>
                   ) : (
                     <div className="space-y-1.5">
-                      {fetchState.data.departures.map((row) => (
+                      {fetchState.data.departures.map((row: TrainRow) => (
                         <TrainRowItem key={row.id} row={row} />
                       ))}
                     </div>
@@ -206,7 +207,7 @@ const StationPopupInner = ({ selected, onClose }: Props) => {
                     </p>
                   ) : (
                     <div className="space-y-1.5">
-                      {fetchState.data.arrivals.map((row) => (
+                      {fetchState.data.arrivals.map((row: TrainRow) => (
                         <TrainRowItem key={row.id} row={row} />
                       ))}
                     </div>
