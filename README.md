@@ -138,7 +138,7 @@ pnpm typecheck
 ## Attributions
 
 - [© OpenStreetMap contributors](http://www.openstreetmap.org/copyright)
-- [© OpenMapTiles]("http://openmaptiles.org/")
+- [© OpenMapTiles](http://openmaptiles.org/)
 - [© CARTO](https://carto.com)
 - [© SNCF – Open Data SNCF API](https://numerique.sncf.com/startup/api/)
 - [© Huwise](https://www.huwise.com/)
